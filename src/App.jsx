@@ -464,7 +464,7 @@ function App() {
 
       <nav className="bottom-nav">
         <div
-          className={`nav-item ${displayTab === "groups" ? "active" : ""}`}
+          className={`nav-item ${activeTab === "groups" ? "active" : ""}`}
           onClick={() => setActiveTab("groups")}
         >
           <div className="nav-icon-bg">
@@ -473,7 +473,7 @@ function App() {
           <span>HOME</span>
         </div>
         <div
-          className={`nav-item ${displayTab === "history" ? "active" : ""}`}
+          className={`nav-item ${activeTab === "history" ? "active" : ""}`}
           onClick={() => setActiveTab("history")}
         >
           <div className="nav-icon-bg">
@@ -482,7 +482,7 @@ function App() {
           <span>HISTORY</span>
         </div>
         <div
-          className={`nav-item ${displayTab === "report" ? "active" : ""}`}
+          className={`nav-item ${activeTab === "report" ? "active" : ""}`}
           onClick={() => setActiveTab("report")}
         >
           <div className="nav-icon-bg">
@@ -491,13 +491,13 @@ function App() {
           <span>REPORT</span>
         </div>
         <div
-          className={`nav-item ${displayTab === "settings" ? "active" : ""}`}
+          className={`nav-item ${activeTab === "settings" ? "active" : ""}`}
           onClick={() => setActiveTab("settings")}
         >
           <div className="nav-icon-bg">
-            <Users size={24} />
+            <SettingsIcon size={24} />
           </div>
-          <span>TEAM</span>
+          <span>SETTINGS</span>
         </div>
       </nav>
 

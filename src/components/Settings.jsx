@@ -1031,23 +1031,31 @@ function Settings({
 
       {isSuperAdmin && (
         <div
-          className="form-card"
-          style={{ background: "#fef2f2", border: "1px solid #fee2e2" }}
+          style={{
+            marginTop: "10px",
+            textAlign: "center",
+          }}
         >
-          <div
+          <button
             onClick={onDeleteGroup}
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
+              background: "none",
+              border: "none",
               color: "#ef4444",
               fontWeight: 700,
               cursor: "pointer",
-              padding: "20px",
+              fontSize: "0.8rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px",
+              margin: "0 auto",
+              padding: "10px",
+              opacity: 0.8,
             }}
           >
-            <AlertTriangle size={20} /> DELETE GROUP DATA
-          </div>
+            <AlertTriangle size={14} /> DELETE GROUP DATA
+          </button>
         </div>
       )}
     </div>

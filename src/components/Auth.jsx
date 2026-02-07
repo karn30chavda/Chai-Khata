@@ -46,16 +46,17 @@ function Auth() {
     <div
       className="fade-in"
       style={{
-        padding: "12px",
-        minHeight: "90vh",
+        padding: "10px",
+        minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "center",
-        maxWidth: "450px",
+        justifyContent: "flex-start",
+        paddingTop: "60px",
+        maxWidth: "420px",
         margin: "0 auto",
       }}
     >
-      <div style={{ textAlign: "center", marginBottom: "40px" }}>
+      <div style={{ textAlign: "center", marginBottom: "35px" }}>
         <div
           style={{
             width: "70px",

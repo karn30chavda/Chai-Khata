@@ -14,7 +14,7 @@ export default defineConfig({
       includeAssets: ["favicon.ico", "apple-touch-icon.png", "mask-icon.svg"],
       manifest: {
         name: "Chai Khata - Expense Tracker",
-        short_name: "ChaiKhata",
+        short_name: "Chai Khata",
         description: "Track your office chai and coffee expenses easily",
         theme_color: "#6366f1",
         background_color: "#ffffff",
