@@ -12,10 +12,17 @@ import {
   Users,
   PlusSquare,
   ArrowRight,
+  Plus,
 } from "lucide-react";
 import EntryForm from "./EntryForm";
 
-function GroupManager({ onSwitch, groupId, groupSettings, onAddEntry }) {
+function GroupManager({
+  onSwitch,
+  groupId,
+  groupSettings,
+  onAddEntry,
+  onGoToSettings,
+}) {
   const [myTeams, setMyTeams] = useState([]);
   const { currentUser, userData } = useAuth();
 
@@ -92,13 +99,28 @@ function GroupManager({ onSwitch, groupId, groupSettings, onAddEntry }) {
             {team.name}
           </div>
         ))}
-        {myTeams.length === 0 && (
-          <div
-            style={{ color: "#94a3b8", fontSize: "0.9rem", padding: "10px" }}
-          >
-            No teams yet.
-          </div>
-        )}
+        {/* Add New Team Button */}
+        <div
+          onClick={() => onGoToSettings?.()}
+          style={{
+            padding: "12px",
+            borderRadius: "100px",
+            background: "white",
+            color: "#6366f1",
+            border: "1px dashed #6366f1",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            flexShrink: 0,
+            transition: "all 0.2s",
+            boxShadow: "0 4px 6px rgba(0,0,0,0.02)",
+          }}
+          onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.9)")}
+          onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
+        >
+          <Plus size={20} />
+        </div>
       </div>
 
       {/* Primary Action Section */}
@@ -112,28 +134,71 @@ function GroupManager({ onSwitch, groupId, groupSettings, onAddEntry }) {
         </div>
       ) : (
         <div
-          className="form-card"
+          className="form-card fade-in"
           style={{
-            padding: "40px 20px",
+            padding: "60px 20px",
             textAlign: "center",
-            background: "#f1f5f9",
-            border: "2px dashed #cbd5e1",
+            background: "white",
+            borderRadius: "24px",
+            boxShadow: "0 20px 40px rgba(0,0,0,0.03)",
             marginBottom: "40px",
+            border: "1px solid #f1f5f9",
           }}
         >
-          <Building2
-            size={48}
-            color="#94a3b8"
-            style={{ marginBottom: "15px" }}
-          />
-          <h3 style={{ fontWeight: 800, color: "#475569" }}>
-            No Office Selected
-          </h3>
-          <p style={{ color: "#64748b", fontSize: "0.9rem" }}>
-            Select one of your teams above to start adding entries.
+          <div
+            style={{
+              width: "80px",
+              height: "80px",
+              background: "#f5f3ff",
+              borderRadius: "20px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "0 auto 25px",
+              color: "#6366f1",
+            }}
+          >
+            <Coffee size={40} />
+          </div>
+          <h2
+            style={{
+              fontWeight: 900,
+              color: "#1e293b",
+              fontSize: "1.5rem",
+              marginBottom: "10px",
+            }}
+          >
+            Chai-Khata
+          </h2>
+          <p
+            style={{ color: "#64748b", marginBottom: "30px", fontSize: "1rem" }}
+          >
+            Your premium office brew companion.
           </p>
+          <button
+            onClick={() => onGoToSettings?.()}
+            style={{
+              padding: "16px 32px",
+              borderRadius: "16px",
+              fontWeight: 800,
+              cursor: "pointer",
+              fontSize: "1rem",
+              background: "white",
+              color: "#6366f1",
+              border: "1px solid #e2e8f0",
+              boxShadow: "0 4px 6px rgba(0,0,0,0.02)",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              margin: "0 auto",
+            }}
+          >
+            Go to Settings <ArrowRight size={18} />
+          </button>
         </div>
       )}
+
+      {/* Clean Home State */}
     </div>
   );
 }

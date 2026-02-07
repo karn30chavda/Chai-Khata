@@ -8,7 +8,7 @@ import {
   LogOut,
   ShieldCheck,
   LayoutGrid,
-  Users,
+  CheckCircle2,
 } from "lucide-react";
 import { startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
 import { db } from "./firebase";
@@ -51,18 +51,48 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   const groupId = userData?.groupId;
-  const isSuperAdmin = currentUser?.uid === groupSettings?.adminUid;
+  const isSuperAdmin =
+    currentUser?.uid &&
+    groupSettings?.adminUid &&
+    currentUser.uid === groupSettings.adminUid;
+
   const permissions = userData?.permissions || {};
   const hasPerm = (p) => permissions[p] === true || isSuperAdmin;
 
-  // Derived state to handle tab forcing when no group is selected
-  const displayTab = currentUser && !groupId ? "groups" : activeTab;
+  // Use activeTab directly for rendering
+  const displayTab = activeTab;
 
-  // Sync loading state when group changes (official React pattern for state sync)
+  // Fix: Stop loading if user is logged in but has no office yet
+  useEffect(() => {
+    if (currentUser && !groupId) {
+      setLoading(false);
+    }
+  }, [currentUser, groupId]);
+
+  // Sync loading state when group changes
   const [prevGroupId, setPrevGroupId] = useState(groupId);
   if (groupId !== prevGroupId) {
     setPrevGroupId(groupId);
-    if (groupId) setLoading(true);
+    if (groupId) {
+      setLoading(true);
+      // Reset settings immediately to prevent permission leakage from prev group
+      setGroupSettings({
+        items: [],
+        timeSlots: [],
+        adminUid: "",
+      });
+    } else {
+      // Clear all state when group is removed
+      setEntries([]);
+      setPayments([]);
+      setMembers([]);
+      setGroupSettings({
+        items: [],
+        timeSlots: [],
+        adminUid: "",
+      });
+      setLoading(false);
+    }
   }
 
   // Confirm Modal State
@@ -101,7 +131,7 @@ function App() {
     );
 
     const unsubSettings = onSnapshot(doc(db, "groups", groupId), (doc) => {
-      if (doc.exists()) setGroupSettings(doc.data());
+      if (doc.exists()) setGroupSettings({ ...doc.data(), id: doc.id });
     });
 
     const unsubMembers = onSnapshot(
@@ -199,13 +229,23 @@ function App() {
         );
         qPayments.forEach((d) => batch.delete(d.ref));
 
-        // 3. Update Users (remove groupId)
         const qUsers = await getDocs(
-          query(collection(db, "users"), where("groupId", "==", groupId)),
+          query(
+            collection(db, "users"),
+            where("groups", "array-contains", groupId),
+          ),
         );
-        qUsers.forEach((u) =>
-          batch.update(u.ref, { groupId: null, groups: arrayRemove(groupId) }),
-        );
+        qUsers.forEach((u) => {
+          const uData = u.data();
+          const remainingGroups = (uData.groups || []).filter(
+            (g) => g !== groupId,
+          );
+          const nextId = remainingGroups.length > 0 ? remainingGroups[0] : null;
+          batch.update(u.ref, {
+            groupId: nextId,
+            groups: arrayRemove(groupId),
+          });
+        });
 
         // 4. Delete Group doc
         batch.delete(doc(db, "groups", groupId));
@@ -240,11 +280,17 @@ function App() {
       message:
         "Are you sure you want to leave this office group? You will lose access to the history.",
       onConfirm: async () => {
-        setLoading(true);
         const userRef = doc(db, "users", currentUser.uid);
         const groupRef = doc(db, "groups", groupId);
+
+        const remainingGroups = (userData?.groups || []).filter(
+          (g) => g !== groupId,
+        );
+        const nextGroupId =
+          remainingGroups.length > 0 ? remainingGroups[0] : null;
+
         await updateDoc(userRef, {
-          groupId: null,
+          groupId: nextGroupId,
           groups: arrayRemove(groupId),
         });
         await updateDoc(groupRef, { members: arrayRemove(currentUser.uid) });
@@ -300,7 +346,7 @@ function App() {
         { groupId: newGroupId, groups: arrayUnion(newGroupId), role: "admin" },
         { merge: true },
       );
-      setActiveTab("add");
+      setActiveTab("groups");
     } catch (err) {
       alert(err.message);
     } finally {
@@ -322,7 +368,7 @@ function App() {
         { groupId: cleanId, groups: arrayUnion(cleanId), role: "user" },
         { merge: true },
       );
-      setActiveTab("add");
+      setActiveTab("groups");
     } catch (err) {
       alert(err.message);
     } finally {
@@ -420,8 +466,104 @@ function App() {
             groupSettings={groupSettings}
             onAddEntry={addEntry}
             totals={totals}
+            onGoToSettings={() => setActiveTab("settings")}
           />
         )}
+
+        {displayTab === "settings" && (
+          <Settings
+            settings={groupSettings}
+            setSettings={updateSettings}
+            members={members}
+            toggleRole={toggleUserRole}
+            updatePerms={updateUserPerms}
+            onUpdateProfile={updateUserProfile}
+            userData={userData}
+            isSuperAdmin={isSuperAdmin}
+            isAdmin={userData?.role === "admin"}
+            onLeave={leaveGroup}
+            onLogout={handleLogout}
+            onDeleteGroup={deleteGroup}
+            onCreateGroup={handleCreateGroup}
+            onJoinGroup={handleJoinGroup}
+            loading={loading}
+          />
+        )}
+
+        {/* Tabs that require an office */}
+        {(displayTab === "history" || displayTab === "report") && !groupId && (
+          <div
+            className="form-card fade-in"
+            style={{
+              padding: "60px 20px",
+              textAlign: "center",
+              background: "white",
+              borderRadius: "24px",
+              boxShadow: "0 20px 40px rgba(0,0,0,0.03)",
+              marginTop: "20px",
+              border: "1px solid #f1f5f9",
+            }}
+          >
+            <div
+              style={{
+                width: "80px",
+                height: "80px",
+                background: "#f5f3ff",
+                borderRadius: "20px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 25px",
+                color: "#6366f1",
+              }}
+            >
+              <Coffee size={40} />
+            </div>
+            <h2
+              style={{
+                fontWeight: 900,
+                color: "#1e293b",
+                fontSize: "1.5rem",
+                marginBottom: "10px",
+              }}
+            >
+              Chai-Khata
+            </h2>
+            <p
+              style={{
+                color: "#64748b",
+                marginBottom: "30px",
+                fontSize: "1rem",
+              }}
+            >
+              Connect with your team to start tracking{" "}
+              {displayTab === "history" ? "logs" : "reports"}.
+            </p>
+
+            <button
+              onClick={() => setActiveTab("settings")}
+              style={{
+                background: "var(--primary-gradient)",
+                color: "white",
+                border: "none",
+                padding: "16px 32px",
+                borderRadius: "16px",
+                fontWeight: 800,
+                cursor: "pointer",
+                fontSize: "1rem",
+                boxShadow: "0 10px 25px rgba(99, 102, 241, 0.3)",
+                transition: "transform 0.2s",
+              }}
+              onMouseDown={(e) =>
+                (e.currentTarget.style.transform = "scale(0.95)")
+              }
+              onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
+            >
+              Get Started
+            </button>
+          </div>
+        )}
+
         {groupId && (
           <>
             {displayTab === "history" && (
@@ -437,25 +579,6 @@ function App() {
                 payments={payments}
                 onRecordPayment={recordPayment}
                 isAdmin={hasPerm("canPayments")}
-              />
-            )}
-            {displayTab === "settings" && (
-              <Settings
-                settings={groupSettings}
-                setSettings={updateSettings}
-                members={members}
-                toggleRole={toggleUserRole}
-                updatePerms={updateUserPerms}
-                onUpdateProfile={updateUserProfile}
-                userData={userData}
-                isSuperAdmin={isSuperAdmin}
-                isAdmin={userData?.role === "admin"}
-                onLeave={leaveGroup}
-                onLogout={handleLogout}
-                onDeleteGroup={deleteGroup}
-                onCreateGroup={handleCreateGroup}
-                onJoinGroup={handleJoinGroup}
-                loading={loading}
               />
             )}
           </>

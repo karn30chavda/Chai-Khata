@@ -61,10 +61,29 @@ function Settings({
   const [profileName, setProfileName] = useState(userData?.name || "");
 
   const [editingPermsUid, setEditingPermsUid] = useState(null);
+  const [copied, setCopied] = useState(false);
 
-  const copyGroupId = () => {
-    navigator.clipboard.writeText(settings.id);
-    alert("Group ID copied!");
+  const copyGroupId = async () => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(settings.id);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = settings.id;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand("copy");
+        textArea.remove();
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Copy failed", err);
+    }
   };
 
   const handleUpdateProfile = () => {
@@ -269,101 +288,17 @@ function Settings({
       </div>
 
       {/* Group Info Card */}
-      <div className="section-label" style={{ marginBottom: "15px" }}>
-        GROUP DETAILS
-      </div>
-      <div
-        className="form-card"
-        style={{
-          marginBottom: "30px",
-          background: "var(--primary-gradient)",
-          color: "white",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              marginBottom: "10px",
-            }}
-          >
-            <Shield size={20} />
-            <span
-              style={{
-                fontWeight: 800,
-                fontSize: "0.8rem",
-                textTransform: "uppercase",
-              }}
-            >
-              Group Details
-            </span>
+      {settings.id && (
+        <>
+          <div className="section-label" style={{ marginBottom: "15px" }}>
+            GROUP DETAILS
           </div>
-          {!isSuperAdmin && (
-            <button
-              onClick={onLeave}
-              style={{
-                background: "rgba(255,255,255,0.2)",
-                border: "none",
-                color: "white",
-                padding: "6px 12px",
-                borderRadius: "8px",
-                fontSize: "0.7rem",
-                fontWeight: 800,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "5px",
-              }}
-            >
-              <ArrowLeftCircle size={14} /> LEAVE TEAM
-            </button>
-          )}
-        </div>
-        <div style={{ fontWeight: 800, fontSize: "1.2rem" }}>
-          {settings.name}
-        </div>
-        <div
-          onClick={copyGroupId}
-          style={{
-            marginTop: "15px",
-            background: "rgba(255,255,255,0.15)",
-            padding: "12px",
-            borderRadius: "10px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            cursor: "pointer",
-            fontSize: "0.8rem",
-            fontWeight: 700,
-          }}
-        >
-          <span>TEAM ID: {settings.id}</span>
-          <Copy size={16} />
-        </div>
-      </div>
-
-      {/* Team Members Section */}
-      <div className="section-label" style={{ marginBottom: "15px" }}>
-        TEAM MEMBERS & PERMISSIONS
-      </div>
-      <div
-        className="form-card"
-        style={{ padding: "0", overflow: "hidden", marginBottom: "30px" }}
-      >
-        {members.map((member, index) => (
           <div
-            key={member.id || index}
+            className="form-card"
             style={{
-              borderBottom:
-                index === members.length - 1 ? "none" : "1px solid #f1f5f9",
+              marginBottom: "30px",
+              background: "var(--primary-gradient)",
+              color: "white",
             }}
           >
             <div
@@ -371,177 +306,282 @@ function Settings({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                padding: "16px 20px",
               }}
             >
               <div
-                style={{ display: "flex", alignItems: "center", gap: "15px" }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  marginBottom: "10px",
+                }}
               >
-                <div
+                <Shield size={20} />
+                <span
                   style={{
-                    width: "40px",
-                    height: "40px",
-                    borderRadius: "10px",
-                    background:
-                      member.id === settings.adminUid ? "#fef3c7" : "#f1f5f9",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color:
-                      member.id === settings.adminUid ? "#d97706" : "#64748b",
+                    fontWeight: 800,
+                    fontSize: "0.8rem",
+                    textTransform: "uppercase",
                   }}
                 >
-                  {member.id === settings.adminUid ? (
-                    <Shield size={20} fill="#d97706" />
-                  ) : member.role === "admin" ? (
-                    <Star size={20} fill="currentColor" />
-                  ) : (
-                    <User size={20} />
-                  )}
-                </div>
-                <div>
-                  <div style={{ fontWeight: 700, color: "#1e293b" }}>
-                    {member.name} {member.id === userData.id && "(You)"}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "0.7rem",
-                      color: "#64748b",
-                      fontWeight: 600,
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    {member.id === settings.adminUid
-                      ? "SUPREME ADMIN"
-                      : member.role}
-                  </div>
-                </div>
+                  Group Details
+                </span>
               </div>
-
-              {isSuperAdmin && member.id !== settings.adminUid && (
-                <div style={{ display: "flex", gap: "8px" }}>
-                  <button
-                    onClick={() =>
-                      setEditingPermsUid(
-                        editingPermsUid === member.id ? null : member.id,
-                      )
-                    }
-                    style={{
-                      background:
-                        editingPermsUid === member.id ? "#6366f1" : "#f1f5f9",
-                      color:
-                        editingPermsUid === member.id ? "white" : "#64748b",
-                      border: "none",
-                      padding: "8px",
-                      borderRadius: "10px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <Lock size={18} />
-                  </button>
-                  <button
-                    onClick={() => toggleRole(member.id, member.role)}
-                    style={{
-                      background: "none",
-                      border: "1px solid #e2e8f0",
-                      color: "#6366f1",
-                      padding: "6px 12px",
-                      borderRadius: "8px",
-                      fontSize: "0.7rem",
-                      fontWeight: 800,
-                      cursor: "pointer",
-                    }}
-                  >
-                    {member.role === "admin" ? "MAKE USER" : "MAKE ADMIN"}
-                  </button>
-                </div>
+              {!isSuperAdmin && (
+                <button
+                  onClick={onLeave}
+                  style={{
+                    background: "rgba(255,255,255,0.2)",
+                    border: "none",
+                    color: "white",
+                    padding: "6px 12px",
+                    borderRadius: "8px",
+                    fontSize: "0.7rem",
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "5px",
+                  }}
+                >
+                  <ArrowLeftCircle size={14} /> LEAVE TEAM
+                </button>
               )}
             </div>
+            <div style={{ fontWeight: 800, fontSize: "1.2rem" }}>
+              {settings.name}
+            </div>
+            <div
+              onClick={copyGroupId}
+              style={{
+                marginTop: "15px",
+                background: copied ? "#10b981" : "rgba(255,255,255,0.15)",
+                padding: "12px",
+                borderRadius: "10px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                cursor: "pointer",
+                fontSize: "0.8rem",
+                fontWeight: 700,
+                transition: "all 0.3s ease",
+              }}
+            >
+              <span>
+                {copied ? "COPIED TO CLIPBOARD!" : `TEAM ID: ${settings.id}`}
+              </span>
+              <Copy size={16} />
+            </div>
+          </div>
+        </>
+      )}
 
-            {isSuperAdmin && editingPermsUid === member.id && (
+      {/* Team Members Section */}
+      {settings.id && (
+        <>
+          <div className="section-label" style={{ marginBottom: "15px" }}>
+            TEAM MEMBERS & PERMISSIONS
+          </div>
+          <div
+            className="form-card"
+            style={{ padding: "0", overflow: "hidden", marginBottom: "30px" }}
+          >
+            {members.map((member, index) => (
               <div
+                key={member.id || index}
                 style={{
-                  padding: "0 20px 20px",
-                  background: "#f8fafc",
-                  marginTop: "-5px",
+                  borderBottom:
+                    index === members.length - 1 ? "none" : "1px solid #f1f5f9",
                 }}
               >
                 <div
                   style={{
-                    fontSize: "0.7rem",
-                    fontWeight: 800,
-                    color: "#64748b",
-                    marginBottom: "10px",
-                    textTransform: "uppercase",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "16px 20px",
                   }}
                 >
-                  Allowed Actions:
-                </div>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: "10px",
-                  }}
-                >
-                  {permOptions.map((opt) => (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "15px",
+                    }}
+                  >
                     <div
-                      key={opt.key}
-                      onClick={() =>
-                        updatePerms(
-                          member.id,
-                          opt.key,
-                          !member.permissions?.[opt.key],
-                        )
-                      }
                       style={{
-                        padding: "10px",
-                        background: "white",
+                        width: "40px",
+                        height: "40px",
                         borderRadius: "10px",
-                        border: `2px solid ${member.permissions?.[opt.key] ? opt.color : "#e2e8f0"}`,
+                        background:
+                          member.id === settings.adminUid
+                            ? "#fef3c7"
+                            : "#f1f5f9",
                         display: "flex",
                         alignItems: "center",
-                        gap: "8px",
-                        cursor: "pointer",
-                        transition: "0.2s",
+                        justifyContent: "center",
+                        color:
+                          member.id === settings.adminUid
+                            ? "#d97706"
+                            : "#64748b",
                       }}
                     >
+                      {member.id === settings.adminUid ? (
+                        <Shield size={20} fill="#d97706" />
+                      ) : member.role === "admin" ? (
+                        <Star size={20} fill="currentColor" />
+                      ) : (
+                        <User size={20} />
+                      )}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 700, color: "#1e293b" }}>
+                        {member.name} {member.id === userData.id && "(You)"}
+                      </div>
                       <div
                         style={{
-                          width: "16px",
-                          height: "16px",
-                          borderRadius: "4px",
-                          background: member.permissions?.[opt.key]
-                            ? opt.color
-                            : "#e2e8f0",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
+                          fontSize: "0.7rem",
+                          color: "#64748b",
+                          fontWeight: 600,
+                          textTransform: "uppercase",
                         }}
                       >
-                        {member.permissions?.[opt.key] && (
-                          <Check size={14} color="white" />
-                        )}
+                        {member.id === settings.adminUid
+                          ? "SUPREME ADMIN"
+                          : member.role}
                       </div>
-                      <span
+                    </div>
+                  </div>
+
+                  {isSuperAdmin && member.id !== settings.adminUid && (
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <button
+                        onClick={() =>
+                          setEditingPermsUid(
+                            editingPermsUid === member.id ? null : member.id,
+                          )
+                        }
                         style={{
-                          fontSize: "0.75rem",
-                          fontWeight: 700,
-                          color: member.permissions?.[opt.key]
-                            ? "#1e293b"
-                            : "#64748b",
+                          background:
+                            editingPermsUid === member.id
+                              ? "#6366f1"
+                              : "#f1f5f9",
+                          color:
+                            editingPermsUid === member.id ? "white" : "#64748b",
+                          border: "none",
+                          padding: "8px",
+                          borderRadius: "10px",
+                          cursor: "pointer",
                         }}
                       >
-                        {opt.label}
-                      </span>
+                        <Lock size={18} />
+                      </button>
+                      <button
+                        onClick={() => toggleRole(member.id, member.role)}
+                        style={{
+                          background: "none",
+                          border: "1px solid #e2e8f0",
+                          color: "#6366f1",
+                          padding: "6px 12px",
+                          borderRadius: "8px",
+                          fontSize: "0.7rem",
+                          fontWeight: 800,
+                          cursor: "pointer",
+                        }}
+                      >
+                        {member.role === "admin" ? "MAKE USER" : "MAKE ADMIN"}
+                      </button>
                     </div>
-                  ))}
+                  )}
                 </div>
+
+                {isSuperAdmin && editingPermsUid === member.id && (
+                  <div
+                    style={{
+                      padding: "0 20px 20px",
+                      background: "#f8fafc",
+                      marginTop: "-5px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: "0.7rem",
+                        fontWeight: 800,
+                        color: "#64748b",
+                        marginBottom: "10px",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Allowed Actions:
+                    </div>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        gap: "10px",
+                      }}
+                    >
+                      {permOptions.map((opt) => (
+                        <div
+                          key={opt.key}
+                          onClick={() =>
+                            updatePerms(
+                              member.id,
+                              opt.key,
+                              !member.permissions?.[opt.key],
+                            )
+                          }
+                          style={{
+                            padding: "10px",
+                            background: "white",
+                            borderRadius: "10px",
+                            border: `2px solid ${member.permissions?.[opt.key] ? opt.color : "#e2e8f0"}`,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            cursor: "pointer",
+                            transition: "0.2s",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: "16px",
+                              height: "16px",
+                              borderRadius: "4px",
+                              background: member.permissions?.[opt.key]
+                                ? opt.color
+                                : "#e2e8f0",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            {member.permissions?.[opt.key] && (
+                              <Check size={14} color="white" />
+                            )}
+                          </div>
+                          <span
+                            style={{
+                              fontSize: "0.75rem",
+                              fontWeight: 700,
+                              color: member.permissions?.[opt.key]
+                                ? "#1e293b"
+                                : "#64748b",
+                            }}
+                          >
+                            {opt.label}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+            ))}
           </div>
-        ))}
-      </div>
+        </>
+      )}
 
       {!isAdmin && (
         <div
@@ -870,7 +910,7 @@ function Settings({
         </>
       )}
 
-      {/* Onboarding in Settings */}
+      {/* Onboarding in Settings - Always available to allow joining multiple teams */}
       <div className="section-label" style={{ marginBottom: "15px" }}>
         TEAM ONBOARDING
       </div>
