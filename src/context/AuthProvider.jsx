@@ -5,9 +5,11 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from "firebase/auth";
 import { auth, db } from "../firebase";
-import { doc, onSnapshot, setDoc } from "firebase/firestore";
+import { doc, onSnapshot, setDoc, getDoc } from "firebase/firestore";
 import { AuthContext } from "./AuthContext";
 
 export function AuthProvider({ children }) {
@@ -33,6 +35,27 @@ export function AuthProvider({ children }) {
 
   function login(email, password) {
     return signInWithEmailAndPassword(auth, email, password);
+  }
+
+  async function loginWithGoogle() {
+    const provider = new GoogleAuthProvider();
+    const cred = await signInWithPopup(auth, provider);
+    const user = cred.user;
+
+    // Check if profile exists
+    const userRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(userRef);
+
+    if (!docSnap.exists()) {
+      await setDoc(userRef, {
+        uid: user.uid,
+        name: user.displayName || "User",
+        email: user.email,
+        groupId: null,
+        role: "user",
+      });
+    }
+    return cred;
   }
 
   function logout() {
@@ -79,6 +102,7 @@ export function AuthProvider({ children }) {
     userData,
     signup,
     login,
+    loginWithGoogle,
     logout,
     resetPassword,
   };
