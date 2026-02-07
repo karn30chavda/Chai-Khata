@@ -181,6 +181,14 @@ function App() {
     setActiveTab("history");
   };
 
+  const updateEntry = async (id, data) => {
+    if (!groupId) return;
+    await updateDoc(doc(db, "entries", id), data);
+  };
+
+  /**
+   * Deletes an entry from the database.
+   */
   const deleteEntry = async (id) => {
     if (!hasPerm("canDelete")) return alert("No permission");
     showConfirm({
@@ -582,6 +590,7 @@ function App() {
               <History
                 entries={entries}
                 onDelete={deleteEntry}
+                onUpdate={updateEntry}
                 isAdmin={hasPerm("canDelete")}
               />
             )}
