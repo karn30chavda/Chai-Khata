@@ -69,6 +69,11 @@ function App() {
     }
   }, [currentUser, groupId]);
 
+  // Scroll to top on tab change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [activeTab]);
+
   // Sync loading state when group changes
   const [prevGroupId, setPrevGroupId] = useState(groupId);
   if (groupId !== prevGroupId) {
@@ -418,7 +423,7 @@ function App() {
       <div
         style={{
           display: "flex",
-          height: "100vh",
+          minHeight: "90vh",
           alignItems: "center",
           justifyContent: "center",
           background: "#f8fafc",
