@@ -58,7 +58,7 @@ function Auth() {
       className="fade-in"
       style={{
         padding: "10px",
-        minHeight: "100vh",
+        minHeight: "90vh",
         display: "flex",
         flexDirection: "column",
         justifyContent: "flex-start",
