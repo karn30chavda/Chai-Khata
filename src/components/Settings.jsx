@@ -373,6 +373,38 @@ function Settings({
               <Copy size={16} />
             </div>
           </div>
+          {isSuperAdmin && (
+            <div
+              style={{
+                marginTop: "12px",
+                display: "flex",
+                justifyContent: "center",
+                marginBottom: "25px",
+              }}
+            >
+              <button
+                onClick={onDeleteGroup}
+                style={{
+                  background: "#fef2f2",
+                  border: "2px dashed #fee2e2",
+                  color: "#ef4444",
+                  fontWeight: 800,
+                  cursor: "pointer",
+                  fontSize: "0.85rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "14px 30px",
+                  borderRadius: "12px",
+                  width: "60%",
+                  justifyContent: "center",
+                  boxShadow: "0 2px 8px rgba(239, 68, 68, 0.1)",
+                }}
+              >
+                <AlertTriangle size={16} /> DELETE GROUP DATA
+              </button>
+            </div>
+          )}
         </>
       )}
 
@@ -911,7 +943,11 @@ function Settings({
       )}
 
       {/* Onboarding in Settings - Always available to allow joining multiple teams */}
-      <div className="section-label" style={{ marginBottom: "15px" }}>
+      <div
+        id="onboarding-section"
+        className="section-label"
+        style={{ marginBottom: "15px" }}
+      >
         TEAM ONBOARDING
       </div>
 
@@ -1068,36 +1104,6 @@ function Settings({
       >
         <LogOut size={22} /> SIGN OUT ACCOUNT
       </button>
-
-      {isSuperAdmin && (
-        <div
-          style={{
-            marginTop: "10px",
-            textAlign: "center",
-          }}
-        >
-          <button
-            onClick={onDeleteGroup}
-            style={{
-              background: "none",
-              border: "none",
-              color: "#ef4444",
-              fontWeight: 700,
-              cursor: "pointer",
-              fontSize: "0.8rem",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "6px",
-              margin: "0 auto",
-              padding: "10px",
-              opacity: 0.8,
-            }}
-          >
-            <AlertTriangle size={14} /> DELETE GROUP DATA
-          </button>
-        </div>
-      )}
     </div>
   );
 }

@@ -466,7 +466,14 @@ function App() {
             groupSettings={groupSettings}
             onAddEntry={addEntry}
             totals={totals}
-            onGoToSettings={() => setActiveTab("settings")}
+            onGoToSettings={() => {
+              setActiveTab("settings");
+              setTimeout(() => {
+                document
+                  .getElementById("onboarding-section")
+                  ?.scrollIntoView({ behavior: "smooth" });
+              }, 100);
+            }}
           />
         )}
 
